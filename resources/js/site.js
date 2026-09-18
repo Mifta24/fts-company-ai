@@ -60,6 +60,24 @@ function initScrollSpy() {
     sections.forEach((section) => observer.observe(section));
 }
 
+/** The projects grid is proof, not the point — it only shows up when asked. */
+function initResultsToggle() {
+    const results = document.querySelector('[data-results]');
+    if (!results) return;
+
+    const open = () => {
+        results.hidden = false;
+        requestAnimationFrame(() => results.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    };
+    const close = () => {
+        results.hidden = true;
+        document.querySelector('.studio-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    document.querySelectorAll('[data-open-results]').forEach((button) => button.addEventListener('click', open));
+    document.querySelectorAll('[data-close-results]').forEach((button) => button.addEventListener('click', close));
+}
+
 function initStaffLauncher() {
     const panel = document.querySelector('[data-staff-panel]');
     const launcher = document.querySelector('.staff-launcher');
@@ -75,5 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     initProjectFilter();
     initScrollSpy();
+    initResultsToggle();
     initStaffLauncher();
 });

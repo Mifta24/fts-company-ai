@@ -31,7 +31,10 @@ class FtsCompanySeederTest extends TestCase
             $this->assertNotEmpty($item->translations['ja']['body'] ?? null, "{$item->title} is missing Japanese");
         }
 
-        $this->get('/')->assertOk()->assertSee('FTS Menu')->assertSee('Neo Soho Mall');
+        // The address and services live in the AI Staff's knowledge base now, not a static
+        // page — the home page itself is AI-first: the chat loads immediately, the portfolio
+        // (capped to the first page of projects) is opt-in.
+        $this->get('/')->assertOk()->assertSee('FTS AI Website')->assertSee('info@fts-tech.co.id');
     }
 
     public function test_seeded_knowledge_answers_team_and_office_questions(): void

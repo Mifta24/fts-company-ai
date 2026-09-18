@@ -688,7 +688,6 @@ function initAiStaff() {
         welcome.appendChild(el('span', 'welcome-mark', '✦'));
         welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI COMPANY'));
         welcome.appendChild(el('h2', null, copy.studio_welcome));
-        if (copy.company_positioning) welcome.appendChild(el('p', 'welcome-tagline', copy.company_positioning));
         welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
         welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
         const chips = el('div', 'chat-chips welcome-chips');

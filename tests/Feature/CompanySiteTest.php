@@ -10,24 +10,26 @@ class CompanySiteTest extends TestCase
 {
     use CreatesCompany, RefreshDatabase;
 
-    public function test_home_shows_active_services_projects_and_faq(): void
+    public function test_home_is_ai_first_and_results_section_lists_active_projects_only(): void
     {
         $company = $this->createCompany(['name' => 'FTS']);
         $service = $this->createService($company, ['name' => 'AI Website']);
-        $this->createService($company, ['slug' => 'hidden', 'name' => 'Secret Service', 'is_active' => false]);
         $company->projects()->create([
             'service_id' => $service->id, 'slug' => 'hotel', 'name' => 'Hotel AI Website', 'status' => 'demo',
             'summary' => 'Hotel demo', 'description' => 'Desc', 'is_active' => true,
         ]);
-        $company->knowledgeItems()->create(['category' => 'faq', 'title' => 'Which languages?', 'body' => 'ID, EN, JA', 'is_active' => true]);
+        $company->projects()->create([
+            'service_id' => $service->id, 'slug' => 'draft-project', 'name' => 'Draft Project', 'status' => 'demo',
+            'summary' => 'Not ready', 'description' => 'Desc', 'is_active' => false,
+        ]);
 
+        // The chat is the page — the portfolio is only rendered (hidden) for the "view results" toggle to reveal.
         $this->get('/')
             ->assertOk()
-            ->assertSee('AI Website')
-            ->assertSee('Hotel AI Website')
-            ->assertSee('Which languages?')
             ->assertSee('data-staff-panel', false)
-            ->assertDontSee('Secret Service');
+            ->assertSee('data-results', false)
+            ->assertSee('Hotel AI Website')
+            ->assertDontSee('Draft Project');
     }
 
     public function test_quotation_services_never_show_a_price(): void
