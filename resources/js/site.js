@@ -60,8 +60,20 @@ function initScrollSpy() {
     sections.forEach((section) => observer.observe(section));
 }
 
+function initStaffLauncher() {
+    const panel = document.querySelector('[data-staff-panel]');
+    const launcher = document.querySelector('.staff-launcher');
+    if (!panel || !launcher || !('IntersectionObserver' in window)) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+        launcher.hidden = entry.isIntersecting;
+    });
+    observer.observe(panel);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     initProjectFilter();
     initScrollSpy();
+    initStaffLauncher();
 });

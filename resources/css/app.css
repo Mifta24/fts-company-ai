@@ -320,68 +320,7 @@
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-/* ------------------------------------------------------------------
-   Animated AI Staff character — state comes from data-state, set by
-   ai-staff.js: idle | listening | thinking | talking | happy | handover
-   ------------------------------------------------------------------ */
 .staff-character { display: inline-block; flex-shrink: 0; }
-.staff-character svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.staff-character .ch-body-group { transform-origin: 100px 205px; animation: ch-breathe 3.6s ease-in-out infinite; }
-.staff-character .ch-head { transform-origin: 100px 118px; transition: transform .35s ease; }
-.staff-character .ch-arm { transition: transform .35s ease; }
-.staff-character .ch-arm-left { transform-origin: 62px 138px; }
-.staff-character .ch-arm-right { transform-origin: 138px 138px; }
-.staff-character .ch-eyes { transform-origin: 100px 76px; animation: ch-blink 5s infinite; transition: transform .3s; }
-.staff-character .ch-mouth { transform-origin: 100px 94px; transition: opacity .2s; }
-.staff-character .ch-mouth-open, .staff-character .ch-mouth-happy { opacity: 0; transform-origin: 100px 96px; transition: opacity .2s; }
-.staff-character .ch-prop { opacity: 0; transform-origin: 164px 30px; transform: scale(.6); transition: opacity .25s, transform .25s; }
-.staff-character .ch-shadow { transform-origin: 100px 208px; animation: ch-shadow 3.6s ease-in-out infinite; }
-
-/* listening: leans toward the visitor, ear cups pulse */
-.staff-character[data-state='listening'] .ch-head { transform: rotate(-7deg) translateY(2px); }
-.staff-character[data-state='listening'] .ch-eyes { transform: scale(1.12); }
-.staff-character[data-state='listening'] .ch-ripple { opacity: 1; transform: scale(1); animation: ch-ripple 1.4s ease-out infinite; transform-origin: 100px 75px; }
-
-/* thinking: hand to chin, eyes up, thought bubble */
-.staff-character[data-state='thinking'] .ch-arm-right { transform: rotate(-112deg); }
-.staff-character[data-state='thinking'] .ch-head { transform: rotate(5deg); }
-.staff-character[data-state='thinking'] .ch-eyes { transform: translate(4px, -4px); }
-.staff-character[data-state='thinking'] .ch-mouth { d: path('M94 96h12'); }
-.staff-character[data-state='thinking'] .ch-dots { opacity: 1; transform: scale(1); animation: ch-float 1.6s ease-in-out infinite; }
-
-/* talking: mouth moves, hand gestures */
-.staff-character[data-state='talking'] .ch-mouth { opacity: 0; }
-.staff-character[data-state='talking'] .ch-mouth-open { opacity: 1; animation: ch-talk .32s ease-in-out infinite alternate; }
-.staff-character[data-state='talking'] .ch-arm-left { animation: ch-gesture 1.1s ease-in-out infinite alternate; }
-.staff-character[data-state='talking'] .ch-head { animation: ch-nod 1.4s ease-in-out infinite; }
-.staff-character[data-state='talking'] .ch-sparks { opacity: 1; transform: scale(1); transform-origin: 100px 40px; animation: ch-twinkle 1.2s ease-in-out infinite; }
-
-/* happy: bounce + big smile + check */
-.staff-character[data-state='happy'] .ch-body-group { animation: ch-bounce .6s ease-in-out 3; }
-.staff-character[data-state='happy'] .ch-mouth { opacity: 0; }
-.staff-character[data-state='happy'] .ch-mouth-happy { opacity: 1; }
-.staff-character[data-state='happy'] .ch-eyes { transform: scaleY(.55) translateY(2px); }
-.staff-character[data-state='happy'] .ch-arm-left { transform: rotate(125deg); }
-.staff-character[data-state='happy'] .ch-arm-right { transform: rotate(-125deg); }
-.staff-character[data-state='happy'] .ch-check { opacity: 1; transform: scale(1); animation: ch-pop .45s cubic-bezier(.2, 1.4, .4, 1); }
-
-/* handover: waves, phone badge */
-.staff-character[data-state='handover'] .ch-arm-right { transform: rotate(-125deg); animation: ch-wave .6s ease-in-out infinite alternate; }
-.staff-character[data-state='handover'] .ch-head { transform: rotate(6deg); }
-.staff-character[data-state='handover'] .ch-phone { opacity: 1; transform: scale(1); animation: ch-float 1.6s ease-in-out infinite; }
-
-@keyframes ch-breathe { 50% { transform: translateY(-3px) scale(1.012, .995); } }
-@keyframes ch-shadow { 50% { transform: scale(.94); opacity: .09; } }
-@keyframes ch-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
-@keyframes ch-ripple { from { transform: scale(.8); opacity: .8; } to { transform: scale(1.5); opacity: 0; } }
-@keyframes ch-float { 50% { transform: scale(1) translateY(-5px); } }
-@keyframes ch-talk { from { transform: scaleY(.35); } to { transform: scaleY(1.05); } }
-@keyframes ch-gesture { from { transform: rotate(0); } to { transform: rotate(40deg); } }
-@keyframes ch-nod { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(3deg) translateY(1px); } }
-@keyframes ch-twinkle { 50% { opacity: .35; transform: scale(.85) rotate(15deg); } }
-@keyframes ch-bounce { 50% { transform: translateY(-16px) scale(1.04, .97); } }
-@keyframes ch-pop { from { transform: scale(0); } }
-@keyframes ch-wave { from { transform: rotate(-125deg); } to { transform: rotate(-98deg); } }
 
 /* hero placement: text left, character right */
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 32px; align-items: center; }
@@ -587,7 +526,7 @@
 .ai-studio .hero h1 { max-width: 18ch; font-size: clamp(34px, 3.6vw, 56px); font-weight: 600; line-height: 1.14; letter-spacing: -.055em; margin-top: 20px; }
 .ai-studio .hero-intro { max-width: 46ch; font-size: 14px; line-height: 1.85; color: #a0aec5; margin-top: 18px; }
 .ai-studio .hero-figure { position: relative; flex: 1; display: grid; place-items: end center; width: 100%; min-height: 340px; padding: 0; margin-top: 4px; overflow: hidden; isolation: isolate; }
-.ai-studio .hero-figure .companion-portrait { width: min(100%, 390px) !important; height: 360px !important; align-self: end; filter: none; }
+.ai-studio .hero-figure .companion-portrait { width: min(100%, 390px) !important; height: 420px !important; align-self: end; filter: none; }
 .companion-orbit { position: absolute; width: 300px; height: 300px; left: 50%; top: 36px; transform: translateX(-50%); border: 1px solid #70b8ff26; border-radius: 50%; box-shadow: 0 0 70px #2977ed17, inset 0 0 65px #287ded14; z-index: -1; }
 .companion-orbit::before, .companion-orbit::after { content: ''; position: absolute; inset: 28px; border: 1px dashed #70b8ff20; border-radius: 50%; }
 .companion-orbit::after { inset: -25px; border-style: solid; border-color: #70b8ff0a; }
@@ -638,6 +577,7 @@
 .ai-studio .staff-banner[data-tone='error'] { background: #431f2d; color: #ffc0c9; }
 .ai-studio .staff-expand { display: none; }
 .ai-studio .staff-launcher { display: inline-flex; align-items: center; gap: 10px; position: fixed; bottom: 20px; right: 24px; z-index: 40; border: 1px solid #8ac7ff40; background: #1d3658ed; color: white; border-radius: 50px; padding: 6px 18px 6px 6px; font-size: 12px; box-shadow: 0 10px 35px #0006; cursor: pointer; backdrop-filter: blur(14px); }
+.ai-studio .staff-launcher[hidden] { display: none; }
 .ai-studio .staff-launcher .staff-avatar { width: 30px !important; height: 30px !important; }
 
 /* Carry the same palette through the company information and chat cards. */
@@ -667,7 +607,7 @@
 .staff-character.anime-character { position: relative; overflow: hidden; border-radius: 22px; }
 .anime-character img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 22%; transition: filter .4s, transform .4s; }
 .companion-portrait.anime-character { border-radius: 0; mask-image: linear-gradient(to bottom, #000 77%, transparent); }
-.companion-portrait.anime-character img { object-fit: cover; object-position: center 16%; mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); animation: companion-breathe 6s ease-in-out infinite; }
+.companion-portrait.anime-character img { object-fit: cover; object-position: center top; mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); animation: companion-breathe 6s ease-in-out infinite; }
 .anime-character[data-state='listening'] img { transform: rotate(-1.5deg) scale(1.025); }
 .anime-character[data-state='thinking'] img { filter: brightness(1.08) saturate(.8); }
 .anime-character[data-state='talking'] img { animation: companion-breathe 2s ease-in-out infinite; }
@@ -675,7 +615,7 @@
 .anime-character[data-state='handover'] img { filter: saturate(.7); }
 .ai-studio .staff-avatar { overflow: hidden; border: 1px solid #81bfff55; background: #17273f; }
 .staff-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transform: scale(1.6); transform-origin: 50% 25%; }
-.ai-studio .msg-avatar:not(.msg-avatar-staff), .ai-studio .staff-nudge-avatar { background: #17273f url('/images/fts-ai-companion.png') center 24% / 175% auto; border: 1px solid #81bfff44; }
+.ai-studio .msg-avatar:not(.msg-avatar-staff), .ai-studio .staff-nudge-avatar { background: #17273f var(--companion-image) center 24% / 175% auto; border: 1px solid #81bfff44; }
 .ai-studio .msg-avatar:not(.msg-avatar-staff)::after, .ai-studio .staff-nudge-avatar::after { display: none; }
 @keyframes companion-breathe { 50% { transform: translateY(4px) scale(1.015); } }
 
@@ -697,6 +637,7 @@
     .ai-studio .staff-panel { visibility: visible; transform: none; transition: none; height: 610px; }
     .ai-studio .staff-close { display: none; }
     .ai-studio .staff-expand { display: grid; }
+    .ai-studio.staff-open .studio-hero { z-index: 60; }
     .ai-studio .staff-panel.is-open { position: fixed; inset: 0; width: 100%; height: 100dvh; border-radius: 0; z-index: 60; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
     .ai-studio .staff-panel.is-open .staff-close { display: grid; }
     .ai-studio .staff-panel.is-open .staff-expand { display: none; }
@@ -744,4 +685,41 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .ai-studio *, .ai-studio *::before, .ai-studio *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Conversation progress and a brief the visitor can review before handover. */
+.ai-studio .company-positioning { margin-top: 20px; color: #d1e4ff; font-size: 14px; font-weight: 500; line-height: 1.5; }
+.ai-studio .company-positioning + .hero-intro { margin-top: 10px; }
+.ai-studio .has-conversation .chat-welcome { display: flex; align-items: center; gap: 12px; max-width: none; margin: 0; padding: 4px 0 14px; text-align: left; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.ai-studio .has-conversation .welcome-mark { width: 32px; height: 32px; flex-shrink: 0; margin: 0; border-radius: 10px; font-size: 20px; }
+.ai-studio .has-conversation .chat-welcome h2 { margin: 0; font-size: 16px; }
+.ai-studio .has-conversation .chat-welcome :is(.welcome-eyebrow, .welcome-intro, .welcome-prompt, .welcome-chips) { display: none; }
+.ai-studio .staff-head, .ai-studio .studio-chat-label, .ai-studio .staff-form, .ai-studio .staff-disclosure, .ai-studio .staff-banner { flex-shrink: 0; }
+.ai-studio .staff-messages > * { flex-shrink: 0; }
+.ai-studio .studio-chat-label [data-character-status] { min-width: 0; line-height: 1.4; }
+.ai-studio [data-character-state='thinking'] .studio-chat-label > .live-dot { background: #b4a7ff; box-shadow: 0 0 10px #9c89ff55; animation: pulse 1.6s ease-in-out infinite; }
+.ai-studio [data-character-state='talking'] .studio-chat-label > .live-dot { background: #77d5ff; }
+.ai-studio .typing { align-items: center; gap: 5px; }
+.typing-label { margin-left: 7px; font-size: 11px; color: #bdcde3; }
+.consultation-card { gap: 12px; }
+.consultation-summary { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.7; }
+.consultation-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.ai-studio .consultation-actions .btn { padding: 10px 13px; font-size: 12px; white-space: normal; }
+.ai-studio .consultation-card[data-confirmed='true'] { border-color: #3b7565; }
+.ai-studio .consultation-card[data-confirmed='true'] .consultation-actions { display: none; }
+.ai-studio .consultation-card[data-expired='true'] .consultation-actions { display: none; }
+@media (max-width: 1023px) {
+    .ai-studio .staff-panel.is-open { top: var(--chat-viewport-top, 0px); bottom: auto; height: var(--chat-viewport-height, 100dvh); }
+    .ai-studio .staff-panel.keyboard-open .staff-disclosure { display: none; }
+    .ai-studio .staff-panel.keyboard-open .studio-chat-label { padding-block: 8px; }
+    .ai-studio .staff-panel.keyboard-open .staff-form { margin-bottom: max(8px, env(safe-area-inset-bottom)); }
+}
+@media (max-width: 700px) {
+    .ai-studio .company-positioning { font-size: 11px; margin-top: 12px; }
+    .ai-studio .company-positioning + .hero-intro { margin-top: 8px; }
+    .ai-studio .consultation-actions { flex-direction: column; }
+    .ai-studio .msg-attachment:has(.consultation-card) { padding-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ai-studio [data-character-state='thinking'] .studio-chat-label > .live-dot { animation: none; }
 }

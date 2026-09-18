@@ -100,6 +100,17 @@ class CompanyStaffTools
                     ],
                 ],
                 [
+                    'name' => 'prepare_consultation',
+                    'description' => 'Show a reviewable consultation summary once you understand the visitor business and goal. Include only needs, constraints, budget, timing and contact details the visitor actually provided, in their language. This DOES NOT notify the team. The visitor can edit it or click the on-screen button to send it to FTS.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'needs_summary' => ['type' => 'string', 'maxLength' => 2000, 'description' => 'A concise, complete brief for both the visitor and the FTS team. Do not invent missing details.'],
+                        ],
+                        'required' => ['needs_summary'],
+                    ],
+                ],
+                [
                     'name' => 'create_lead',
                     'description' => 'Register the visitor as a prospect after they agree to a consultation, demo, or quotation. Required before calling: their name, at least one contact (email or phone/WhatsApp), and a short summary of their needs. Confirm details with the visitor first. Does not schedule a fixed meeting — the sales team follows up.',
                     'parameters' => [
@@ -149,6 +160,7 @@ class CompanyStaffTools
             'get_service_detail' => $this->getServiceDetail($input),
             'show_projects' => $this->showProjects($input),
             'get_project_detail' => $this->getProjectDetail($input),
+            'prepare_consultation' => $this->prepareConsultation($input),
             'create_lead' => $this->createLead($input),
             'request_human_handover' => $this->requestHumanHandover($input),
             default => ['text' => "Unknown tool: {$name}", 'ui' => null],
@@ -343,6 +355,24 @@ class CompanyStaffTools
         return [
             'text' => $this->json($detail),
             'ui' => ['type' => 'project_detail', 'project' => $detail],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     * @return array{text: string, ui: array<string, mixed>|null}
+     */
+    private function prepareConsultation(array $input): array
+    {
+        $summary = $input['needs_summary'] ?? null;
+
+        if (! is_string($summary) || trim($summary) === '' || mb_strlen($summary) > 2000) {
+            return ['text' => 'Provide a non-empty needs_summary of at most 2000 characters, based only on visitor-provided facts.', 'ui' => null];
+        }
+
+        return [
+            'text' => 'A summary is displayed for review. Ask the visitor to check it and use the on-screen button to send it to FTS. Do not call request_human_handover or create_lead in this turn. No request has been sent yet.',
+            'ui' => ['type' => 'consultation_summary', 'summary' => trim($summary), 'confirmed' => false],
         ];
     }
 

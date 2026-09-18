@@ -17,6 +17,7 @@ Route::get('/', [CompanySiteController::class, 'show'])->name('home');
 Route::prefix('ai-staff')->name('ai-staff.')->group(function () {
     Route::post('start', [AiStaffChatController::class, 'start'])->middleware('throttle:10,1')->name('start');
     Route::post('message', [AiStaffChatController::class, 'message'])->middleware('throttle:20,1')->name('message');
+    Route::post('consultation', [AiStaffChatController::class, 'consultation'])->middleware('throttle:10,1')->name('consultation');
     Route::get('history', [AiStaffChatController::class, 'history'])->middleware('throttle:60,1')->name('history');
 });
 

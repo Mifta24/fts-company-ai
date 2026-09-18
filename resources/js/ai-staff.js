@@ -50,10 +50,12 @@ function initAiStaff() {
     const inputEl = panel.querySelector('[data-chat-input]');
     const submitEl = panel.querySelector('[data-chat-submit]');
     const banner = panel.querySelector('[data-status-banner]');
+    const characterStatus = panel.querySelector('[data-character-status]');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const mobileQuery = window.matchMedia('(max-width: 1023px)');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let panelTrigger = null;
+    let closingPanel = false;
 
     let ready = false;
     let busy = false;
@@ -73,6 +75,8 @@ function initAiStaff() {
     function setCharacter(state, duration) {
         clearTimeout(characterTimer);
         characters.forEach((node) => { node.dataset.state = state; });
+        panel.dataset.characterState = state;
+        if (characterStatus) characterStatus.textContent = copy[`state_${state}`] || copy.state_idle;
         if (duration) characterTimer = setTimeout(() => setCharacter(restingState()), duration);
     }
 
@@ -224,9 +228,12 @@ function initAiStaff() {
     // --- panel open/close (only meaningful on mobile; desktop is always open) ---
 
     function openPanel() {
-        if (!panel.classList.contains('is-open')) panelTrigger = document.activeElement;
+        if (!panel.classList.contains('is-open')) {
+            panelTrigger = document.activeElement === inputEl ? panel.querySelector('[data-open-staff]') : document.activeElement;
+        }
         panel.classList.add('is-open');
         document.body.classList.add('staff-open');
+        updateChatViewport();
         if (!mobileQuery.matches) {
             panel.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'instant' : 'smooth', block: 'center' });
         }
@@ -235,12 +242,28 @@ function initAiStaff() {
     }
 
     function closePanel() {
+        closingPanel = true;
+        if (document.activeElement === inputEl) inputEl.blur();
         panel.classList.remove('is-open');
         document.body.classList.remove('staff-open');
         panelTrigger?.focus({ preventScroll: true });
+        closingPanel = false;
     }
 
     mobileQuery.addEventListener('change', closePanel);
+
+    function updateChatViewport() {
+        const viewport = window.visualViewport;
+        if (!mobileQuery.matches || !panel.classList.contains('is-open') || (viewport && viewport.scale !== 1)) return;
+        panel.style.setProperty('--chat-viewport-height', `${viewport?.height || window.innerHeight}px`);
+        panel.style.setProperty('--chat-viewport-top', `${viewport?.offsetTop || 0}px`);
+        panel.classList.toggle('keyboard-open', Boolean(viewport && window.innerHeight - viewport.height > 120));
+        if (document.activeElement === inputEl) scrollToBottom();
+    }
+
+    window.visualViewport?.addEventListener('resize', updateChatViewport);
+    window.visualViewport?.addEventListener('scroll', updateChatViewport);
+    window.addEventListener('resize', updateChatViewport);
 
     document.querySelectorAll('[data-open-staff]').forEach((button) => button.addEventListener('click', openPanel));
     panel.querySelector('[data-close-staff]')?.addEventListener('click', closePanel);
@@ -314,6 +337,10 @@ function initAiStaff() {
     }
 
     function textBubble(role, text) {
+        if (role === 'visitor') {
+            panel.classList.add('has-conversation');
+            expireConsultationCards();
+        }
         const bubble = el('div', 'bubble');
         if (role === 'staff') bubble.appendChild(el('span', 'bubble-label', copy.staff_label));
         if (role === 'assistant' || role === 'staff') {
@@ -473,7 +500,73 @@ function initAiStaff() {
         return el('div', 'chat-notice', text);
     }
 
-    function renderUiPayload(payloads) {
+    function expireConsultationCards() {
+        messagesEl.querySelectorAll('[data-consultation-card]').forEach((card) => {
+            if (card.dataset.confirmed === 'true') return;
+            card.dataset.expired = 'true';
+            card.querySelectorAll('button').forEach((button) => { button.disabled = true; });
+            card.querySelector('[data-consultation-note]').textContent = copy.consultation_outdated;
+        });
+    }
+
+    function consultationCard(draft, messageId) {
+        expireConsultationCards();
+        const card = el('article', 'chat-card chat-card-wide consultation-card');
+        card.dataset.consultationCard = messageId;
+        card.dataset.confirmed = String(Boolean(draft.confirmed));
+        card.appendChild(el('p', 'card-label', copy.consultation_title));
+        card.appendChild(el('p', 'consultation-summary', draft.summary));
+        const note = el('p', 'muted', draft.confirmed ? copy.consultation_sent : copy.consultation_review);
+        note.dataset.consultationNote = '';
+        card.appendChild(note);
+        const actions = el('div', 'consultation-actions');
+        const confirm = el('button', 'btn btn-primary', draft.confirmed ? copy.consultation_sent : copy.consultation_confirm);
+        confirm.type = 'button';
+        confirm.dataset.consultationConfirm = '';
+        confirm.disabled = Boolean(draft.confirmed) || !messageId;
+        confirm.addEventListener('click', () => confirmConsultation(card, messageId));
+        const edit = el('button', 'btn btn-ghost', copy.consultation_edit);
+        edit.type = 'button';
+        edit.dataset.consultationEdit = '';
+        edit.disabled = Boolean(draft.confirmed) || !messageId;
+        edit.addEventListener('click', () => {
+            if (busy || handedOver) return;
+            inputEl.value = copy.consultation_edit_prompt;
+            openPanel();
+            inputEl.dispatchEvent(new Event('input'));
+            inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+        });
+        actions.append(confirm, edit);
+        card.appendChild(actions);
+        return card;
+    }
+
+    async function confirmConsultation(card, messageId) {
+        if (busy || !ready || handedOver || card.dataset.confirmed === 'true' || card.dataset.expired === 'true') return;
+        openPanel();
+        stopSpeaking();
+        setBusy(true);
+        setCharacter('thinking');
+        const note = card.querySelector('[data-consultation-note]');
+        note.textContent = copy.consultation_sending;
+        try {
+            const data = await api(config.consultationUrl, { visitor_token: token(), message_id: messageId });
+            card.dataset.confirmed = 'true';
+            note.textContent = copy.consultation_sent;
+            card.querySelector('[data-consultation-confirm]').textContent = copy.consultation_sent;
+            renderMessage(data.message);
+            setHandedOver(data.status === 'handed_over');
+        } catch (error) {
+            note.textContent = error.status === 422 || error.status === 404 ? copy.consultation_outdated : copy.consultation_error;
+            if (error.status === 422 || error.status === 404) card.dataset.expired = 'true';
+        } finally {
+            setCharacter(restingState());
+            setBusy(false);
+            scrollToBottom();
+        }
+    }
+
+    function renderUiPayload(payloads, messageId) {
         (payloads || []).forEach((payload) => {
             switch (payload.type) {
                 case 'service_list': {
@@ -496,6 +589,9 @@ function initAiStaff() {
                     break;
                 case 'lead_confirmation':
                     attachment([leadCard(payload.lead)]);
+                    break;
+                case 'consultation_summary':
+                    attachment([consultationCard(payload, messageId)]);
                     break;
                 case 'handover':
                     attachment([noticeCard(copy.handed_over)]);
@@ -526,7 +622,7 @@ function initAiStaff() {
             textBubble('visitor', message.content);
         } else if (message.role === 'assistant' || message.role === 'system') {
             if (message.content) textBubble('assistant', message.content);
-            renderUiPayload(message.ui_payload);
+            renderUiPayload(message.ui_payload, message.id);
             if (live && message.role === 'assistant') reactToReply(message);
         } else if (message.role === 'staff') {
             textBubble('staff', message.content);
@@ -534,9 +630,10 @@ function initAiStaff() {
     }
 
     function renderWelcome() {
+        panel.classList.remove('has-conversation');
         const welcome = el('div', 'chat-welcome');
         welcome.appendChild(el('span', 'welcome-mark', '✦'));
-        welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI STUDIO'));
+        welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI COMPANY'));
         welcome.appendChild(el('h2', null, copy.studio_welcome));
         welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
         welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
@@ -555,7 +652,7 @@ function initAiStaff() {
     function showTyping() {
         const dots = el('div', 'bubble typing');
         dots.setAttribute('aria-label', copy.thinking);
-        dots.append(el('i'), el('i'), el('i'));
+        dots.append(el('i'), el('i'), el('i'), el('span', 'typing-label', copy.state_thinking));
         typingEl = row('assistant', dots);
         setCharacter('thinking');
         scrollToBottom();
@@ -576,6 +673,11 @@ function initAiStaff() {
         panel.setAttribute('aria-busy', String(busy));
         document.body.classList.toggle('staff-thinking', busy);
         document.querySelectorAll('[data-quick-message]').forEach((button) => { button.disabled = disabled; });
+        panel.querySelectorAll('[data-consultation-card]').forEach((card) => {
+            card.querySelectorAll('button').forEach((button) => {
+                button.disabled = disabled || card.dataset.confirmed === 'true' || card.dataset.expired === 'true';
+            });
+        });
     }
 
     function showBanner(text, tone = 'info') {
@@ -748,12 +850,17 @@ function initAiStaff() {
         inputEl.style.height = `${Math.min(inputEl.scrollHeight, 140)}px`;
         if (!busy) setCharacter(inputEl.value.trim() ? 'listening' : restingState());
     });
-    inputEl.addEventListener('focus', () => { if (!busy && inputEl.value.trim()) setCharacter('listening'); });
+    inputEl.addEventListener('focus', () => {
+        if (mobileQuery.matches && !closingPanel && !panel.classList.contains('is-open')) openPanel();
+        if (!busy && !handedOver) setCharacter('listening');
+    });
     inputEl.addEventListener('blur', () => { if (!busy) setCharacter(restingState()); });
 
 
     panel.querySelector('[data-new-chat]')?.addEventListener('click', async () => {
         if (busy) return;
+        ready = false;
+        setBusy(true);
         stopSpeaking();
         stopPolling();
         setHandedOver(false);
@@ -762,8 +869,12 @@ function initAiStaff() {
         try {
             await startConversation();
             renderWelcome();
+            ready = true;
         } catch {
             showBanner(copy.connection_error, 'error');
+        } finally {
+            setBusy(false);
+            setCharacter(restingState());
         }
         inputEl.focus();
     });

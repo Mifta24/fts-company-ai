@@ -44,13 +44,13 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="site ai-studio antialiased">
+<body class="site ai-studio antialiased" style="--companion-image: url('{{ asset('images/fts-ai-companion.png') }}')">
     <a href="#ai-staff" class="skip-link">{{ $copy['talk_to_staff'] }}</a>
 
     <header class="site-header">
         <a href="{{ url('/?lang='.$locale) }}" class="brand">
             <img src="{{ asset('images/logo-fts.webp') }}" alt="" width="32" height="32">
-            <span class="studio-brand">FTS<span>AI STUDIO</span></span>
+            <span class="studio-brand">FTS<span>AI COMPANY</span></span>
         </a>
         <nav class="site-nav" aria-label="{{ $company->name }}" data-scrollspy>
             @foreach ($navItems as $id => $label)
@@ -74,22 +74,22 @@
                 <div class="hero-orb hero-orb-2"></div>
                 <div class="studio-workspace">
                     <div class="studio-companion">
-                      <div class="hero-copy">
-                        <p class="hero-badge"><span class="live-dot"></span>{{ $copy['hero_eyebrow'] }}</p>
-                        <h1 id="hero-title">{{ $copy['hero_title'] }}<br><span class="gradient-text">{{ $copy['hero_title_accent'] }}</span></h1>
-                        <p class="hero-intro">{{ __($copy['hero_intro'], ['name' => $staffName]) }}</p>
-
-                      </div>
-                      <div class="hero-figure">
-                        <div class="companion-orbit" aria-hidden="true"></div>
-                        <span class="companion-label">FTS / AI COMPANION</span>
-                        <x-staff-character :size="380" class="companion-portrait" />
-                        <div class="companion-card">
-                            <span class="companion-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-                            <div><strong>{{ $staffName }}</strong><span>{{ $copy['studio_companion'] }}</span></div>
-                            <span class="online-dot" aria-hidden="true"></span>
+                        <div class="hero-copy">
+                            <p class="hero-badge"><span class="live-dot"></span>{{ $copy['hero_eyebrow'] }}</p>
+                            <h1 id="hero-title">{{ $copy['hero_title'] }}<br><span class="gradient-text">{{ $copy['hero_title_accent'] }}</span></h1>
+                            <p class="company-positioning">{{ $copy['company_positioning'] }}</p>
+                            <p class="hero-intro">{{ __($copy['hero_intro'], ['name' => $staffName]) }}</p>
                         </div>
-                      </div>
+                        <div class="hero-figure">
+                            <div class="companion-orbit" aria-hidden="true"></div>
+                            <span class="companion-label">FTS / AI COMPANION</span>
+                            <x-staff-character :size="380" class="companion-portrait" />
+                            <div class="companion-card">
+                                <span class="companion-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                                <div><strong>{{ $staffName }}</strong><span>{{ $copy['studio_companion'] }}</span></div>
+                                <span class="online-dot" aria-hidden="true"></span>
+                            </div>
+                        </div>
                     </div>
                     @include('site.staff-panel')
                 </div>
@@ -99,12 +99,12 @@
                     <span class="studio-language-note">ID / EN / JA</span>
                 </div>
             </section>
-                <dl class="stats-band">
-                    @foreach ($stats as [$value, $label])
-                        <div><dd>{{ $value }}</dd><dt>{{ $label }}</dt></div>
-                    @endforeach
-                    <div class="stats-flags"><dd><span aria-hidden="true">🇯🇵 🇮🇩</span> ID · EN · JA</dd><dt>{{ $copy['hero_markets'] }}</dt></div>
-                </dl>
+            <dl class="stats-band">
+                @foreach ($stats as [$value, $label])
+                    <div><dd>{{ $value }}</dd><dt>{{ $label }}</dt></div>
+                @endforeach
+                <div class="stats-flags"><dd><span aria-hidden="true">🇯🇵 🇮🇩</span> ID · EN · JA</dd><dt>{{ $copy['hero_markets'] }}</dt></div>
+            </dl>
 
             {{-- Services --}}
             <section id="services" class="section" aria-labelledby="services-title">

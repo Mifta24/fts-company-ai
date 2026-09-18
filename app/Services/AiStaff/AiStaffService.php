@@ -5,8 +5,10 @@ namespace App\Services\AiStaff;
 use App\Models\Company;
 use App\Models\Conversation;
 use App\Models\ConversationMessage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 /**
@@ -115,6 +117,43 @@ class AiStaffService
         ]);
     }
 
+    public function confirmConsultation(Company $company, Conversation $conversation, int $messageId): ConversationMessage
+    {
+        return DB::transaction(function () use ($company, $conversation, $messageId): ConversationMessage {
+            $conversation = $company->conversations()->lockForUpdate()->findOrFail($conversation->id);
+            $message = $conversation->messages()->where('role', ConversationMessage::ROLE_ASSISTANT)->findOrFail($messageId);
+            $payloads = $message->ui_payload ?? [];
+            $summaryIndex = array_find_key($payloads, fn (array $payload): bool => ($payload['type'] ?? null) === 'consultation_summary');
+
+            if ($summaryIndex === null) {
+                throw ValidationException::withMessages(['message_id' => 'This message does not contain a consultation summary.']);
+            }
+
+            $draft = $payloads[$summaryIndex];
+            if (isset($draft['handover_message_id'])) {
+                return $conversation->messages()->findOrFail($draft['handover_message_id']);
+            }
+
+            if ($conversation->status !== Conversation::STATUS_ACTIVE || $conversation->messages()
+                ->where('role', ConversationMessage::ROLE_VISITOR)->where('id', '>', $messageId)->exists()) {
+                throw ValidationException::withMessages(['message_id' => 'Please ask Aya for an updated summary before sending it.']);
+            }
+
+            $tools = new CompanyStaffTools($company, $conversation, $conversation->locale);
+            $result = $tools->dispatch('request_human_handover', ['reason' => 'custom_project', 'summary' => $draft['summary']]);
+            $confirmation = $conversation->messages()->create([
+                'role' => ConversationMessage::ROLE_SYSTEM,
+                'ui_payload' => [$result['ui']],
+            ]);
+            $payloads[$summaryIndex]['confirmed'] = true;
+            $payloads[$summaryIndex]['handover_message_id'] = $confirmation->id;
+            $message->update(['ui_payload' => $payloads]);
+            $conversation->update(['last_message_at' => now()]);
+
+            return $confirmation;
+        });
+    }
+
     /**
      * One call to the local model's OpenAI-compatible /v1/chat/completions.
      *
@@ -212,6 +251,7 @@ class AiStaffService
         7. Call request_human_handover for: custom project scoping the tools cannot answer, price negotiation or discounts, partnership/reseller inquiries, support for an existing customer, complaints, or when the visitor asks for a human. Write the summary for a colleague who has not read this chat.
         8. Be warm, confident and concise — like a helpful, professional member of the FTS team. Two to four short sentences is usually enough. Plain text only, no markdown tables or headings.
         9. If asked, be honest that you are an AI staff member, and that a human team member can join any time.
+        10. For a new consultation, first learn the business type and desired outcome, one question at a time. Once these are clear, call prepare_consultation to show a brief for review. Include only details the visitor gave; do not require a budget or deadline. Explain that they can edit it or press the on-screen button to forward it to FTS. Do not call create_lead or request_human_handover in the same turn as prepare_consultation: the button handles forwarding. If they change the brief, prepare a new summary. A direct request for a human, an existing customer issue or a complaint can still use rule 7 immediately.
 
         Currency for prices: {$company->currency}. Today's date: {$today}.
         PROMPT;

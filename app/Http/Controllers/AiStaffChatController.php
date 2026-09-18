@@ -64,6 +64,22 @@ class AiStaffChatController extends Controller
         ]);
     }
 
+    public function consultation(Request $request): JsonResponse
+    {
+        $company = $this->publishedCompany();
+        $data = $request->validate([
+            'visitor_token' => ['required', 'uuid'],
+            'message_id' => ['required', 'integer', 'min:1'],
+        ]);
+        $conversation = $this->findConversation($company, $data['visitor_token']);
+        $message = $this->aiStaff->confirmConsultation($company, $conversation, (int) $data['message_id']);
+
+        return response()->json([
+            'message' => $this->formatMessage($message),
+            'status' => $conversation->fresh()->status,
+        ]);
+    }
+
     public function history(Request $request): JsonResponse
     {
         $company = $this->publishedCompany();

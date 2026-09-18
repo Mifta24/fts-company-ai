@@ -2,6 +2,7 @@
     $staffConfig = [
         'startUrl' => route('ai-staff.start'),
         'messageUrl' => route('ai-staff.message'),
+        'consultationUrl' => route('ai-staff.consultation'),
         'historyUrl' => route('ai-staff.history'),
         'storageKey' => 'ai_staff_token_'.$company->slug,
         'locale' => $locale,
@@ -16,6 +17,10 @@
             'status_demo', 'status_in_development', 'connection_error', 'error_generic', 'chat_send',
             'featured', 'hero_try', 'studio_welcome', 'voice_on', 'voice_off', 'voice_unsupported', 'nudge_general', 'nudge_services',
             'nudge_projects', 'nudge_pricing', 'nudge_about', 'nudge_contact', 'talk_to_staff',
+            'state_idle', 'state_listening', 'state_thinking', 'state_talking', 'state_happy', 'state_handover',
+            'consultation_title', 'consultation_review', 'consultation_confirm', 'consultation_edit',
+            'consultation_edit_prompt', 'consultation_sent', 'consultation_sending', 'consultation_error',
+            'consultation_outdated',
         ])->map(fn ($text, $key) => in_array($key, ['chat_intro', 'thinking', 'studio_welcome'], true) ? str_replace(':name', $staffName, $text) : $text)->all(),
     ];
 @endphp
@@ -42,7 +47,7 @@
         </button>
     </div>
 
-    <div class="studio-chat-label"><span class="live-dot" aria-hidden="true"></span>{{ $copy['studio_chat'] }}<span>FTS AI</span></div>
+    <div class="studio-chat-label"><span class="live-dot" aria-hidden="true"></span><span data-character-status role="status" aria-live="polite">{{ $copy['state_idle'] }}</span><span>FTS AI</span></div>
 
     <div data-messages class="staff-messages" role="log" aria-live="polite" aria-label="{{ $staffName }}"></div>
 
