@@ -63,6 +63,8 @@ function initAiStaff() {
     let renderedIds = new Set();
     let pollTimer = null;
     let typingEl = null;
+    let revealTimer = null;
+    let finishReveal = null;
 
     // --- animated character: every copy on the page mirrors the chat state ---
     const characters = [...document.querySelectorAll('[data-staff-character]')];
@@ -162,10 +164,9 @@ function initAiStaff() {
         window.addEventListener('pagehide', stopSpeaking);
     }
 
-    /** Talks for as long as the reply is spoken, or about as long as it takes to read. */
-    function reactToReply(message) {
+    /** Talks for as long as the reply is spoken, or as long as the text takes to reveal. */
+    function reactToReply(message, revealed) {
         const types = (message.ui_payload || []).map((payload) => payload.type);
-        const talkFor = Math.min(1500 + (message.content?.length || 0) * 28, 6000);
         const afterwards = types.includes('lead_confirmation')
             ? () => setCharacter('happy', 3500)
             : () => setCharacter(restingState());
@@ -173,6 +174,12 @@ function initAiStaff() {
         setCharacter('talking');
         if (speak(message.content, afterwards)) return;
 
+        if (revealed) {
+            revealed.then(() => { characterTimer = setTimeout(afterwards, 400); });
+            return;
+        }
+
+        const talkFor = Math.min(1500 + (message.content?.length || 0) * 28, 6000);
         characterTimer = setTimeout(afterwards, types.includes('handover') ? 2000 : talkFor);
     }
 
@@ -321,6 +328,42 @@ function initAiStaff() {
         requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
     }
 
+    /**
+     * Reveals a reply a few words at a time so it feels like Aya is
+     * answering live, even though the backend returns the full text in one
+     * response. Resolves once every word is on screen.
+     */
+    function revealReply(node, text) {
+        finishReveal?.(); // an earlier reveal was still running — snap it to done first
+        if (reducedMotionQuery.matches) {
+            node.innerHTML = formatReply(text);
+            return Promise.resolve();
+        }
+
+        const words = text.split(/(\s+)/);
+        let i = 0;
+        return new Promise((resolve) => {
+            const finish = () => {
+                clearTimeout(revealTimer);
+                node.innerHTML = formatReply(text);
+                finishReveal = null;
+                resolve();
+            };
+            finishReveal = finish;
+            const step = () => {
+                i++;
+                node.innerHTML = formatReply(words.slice(0, i).join(''));
+                scrollToBottom();
+                if (i < words.length) {
+                    revealTimer = setTimeout(step, 16 + Math.random() * 26);
+                } else {
+                    finish();
+                }
+            };
+            step();
+        });
+    }
+
     // --- message rendering ---
 
     function row(role, child) {
@@ -336,21 +379,28 @@ function initAiStaff() {
         return wrap;
     }
 
-    function textBubble(role, text) {
+    function textBubble(role, text, { reveal = false } = {}) {
         if (role === 'visitor') {
             panel.classList.add('has-conversation');
             expireConsultationCards();
         }
         const bubble = el('div', 'bubble');
         if (role === 'staff') bubble.appendChild(el('span', 'bubble-label', copy.staff_label));
+        let revealed = null;
         if (role === 'assistant' || role === 'staff') {
             const body = el('div');
-            body.innerHTML = formatReply(text);
+            if (reveal) {
+                revealed = revealReply(body, text);
+            } else {
+                body.innerHTML = formatReply(text);
+            }
             bubble.appendChild(body);
         } else {
             bubble.textContent = text;
         }
-        return row(role, bubble);
+        const wrap = row(role, bubble);
+        wrap.revealed = revealed;
+        return wrap;
     }
 
     function attachment(nodes) {
@@ -621,9 +671,12 @@ function initAiStaff() {
 
             textBubble('visitor', message.content);
         } else if (message.role === 'assistant' || message.role === 'system') {
-            if (message.content) textBubble('assistant', message.content);
+            let revealed = null;
+            if (message.content) {
+                revealed = textBubble('assistant', message.content, { reveal: live }).revealed;
+            }
             renderUiPayload(message.ui_payload, message.id);
-            if (live && message.role === 'assistant') reactToReply(message);
+            if (live && message.role === 'assistant') reactToReply(message, revealed);
         } else if (message.role === 'staff') {
             textBubble('staff', message.content);
         }
@@ -635,6 +688,7 @@ function initAiStaff() {
         welcome.appendChild(el('span', 'welcome-mark', '✦'));
         welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI COMPANY'));
         welcome.appendChild(el('h2', null, copy.studio_welcome));
+        if (copy.company_positioning) welcome.appendChild(el('p', 'welcome-tagline', copy.company_positioning));
         welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
         welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
         const chips = el('div', 'chat-chips welcome-chips');

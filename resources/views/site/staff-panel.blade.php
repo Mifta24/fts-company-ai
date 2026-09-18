@@ -10,7 +10,7 @@
         'staffName' => $staffName,
         'quickQuestions' => array_slice($quickQuestions, 0, 4),
         'copy' => collect($copy)->only([
-            'chat_intro', 'thinking', 'handed_over', 'waiting_for_staff', 'staff_label', 'view_details',
+            'company_positioning', 'chat_intro', 'thinking', 'handed_over', 'waiting_for_staff', 'staff_label', 'view_details',
             'see_projects', 'lead_received', 'lead_followup', 'lead_type_consultation', 'lead_type_demo',
             'lead_type_quotation', 'reference', 'features', 'pricing', 'from', 'by_quotation', 'visit',
             'ask_about_project', 'ask_project_msg', 'ask_service_msg', 'status_live', 'status_pilot',
