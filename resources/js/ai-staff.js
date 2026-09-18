@@ -52,6 +52,8 @@ function initAiStaff() {
     const banner = panel.querySelector('[data-status-banner]');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let panelTrigger = null;
 
     let ready = false;
     let busy = false;
@@ -222,10 +224,11 @@ function initAiStaff() {
     // --- panel open/close (only meaningful on mobile; desktop is always open) ---
 
     function openPanel() {
+        if (!panel.classList.contains('is-open')) panelTrigger = document.activeElement;
         panel.classList.add('is-open');
         document.body.classList.add('staff-open');
         if (!mobileQuery.matches) {
-            panel.animate?.([{ boxShadow: '0 0 0 3px #f0641355' }, { boxShadow: '0 0 0 0 #f0641300' }], { duration: 900 });
+            panel.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'instant' : 'smooth', block: 'center' });
         }
         scrollToBottom();
         inputEl.focus({ preventScroll: true });
@@ -234,12 +237,28 @@ function initAiStaff() {
     function closePanel() {
         panel.classList.remove('is-open');
         document.body.classList.remove('staff-open');
+        panelTrigger?.focus({ preventScroll: true });
     }
+
+    mobileQuery.addEventListener('change', closePanel);
 
     document.querySelectorAll('[data-open-staff]').forEach((button) => button.addEventListener('click', openPanel));
     panel.querySelector('[data-close-staff]')?.addEventListener('click', closePanel);
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && panel.classList.contains('is-open') && mobileQuery.matches) closePanel();
+        if (event.key !== 'Tab' || !mobileQuery.matches || !panel.classList.contains('is-open')) return;
+
+        const controls = [...panel.querySelectorAll('button:not(:disabled), textarea:not(:disabled), a[href]')]
+            .filter((node) => node.getClientRects().length);
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+        }
     });
 
     // --- formatting helpers ---
@@ -515,8 +534,13 @@ function initAiStaff() {
     }
 
     function renderWelcome() {
-        textBubble('assistant', copy.chat_intro);
-        const chips = el('div', 'chat-chips');
+        const welcome = el('div', 'chat-welcome');
+        welcome.appendChild(el('span', 'welcome-mark', '✦'));
+        welcome.appendChild(el('span', 'welcome-eyebrow', 'LET’S CREATE SOMETHING GREAT'));
+        welcome.appendChild(el('h2', null, copy.studio_welcome));
+        welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
+        welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
+        const chips = el('div', 'chat-chips welcome-chips');
         config.quickQuestions.forEach((question) => {
             const chip = el('button', 'chip chip-small', question.label);
             chip.type = 'button';
@@ -524,7 +548,8 @@ function initAiStaff() {
             chip.addEventListener('click', () => sendMessage(question.message));
             chips.appendChild(chip);
         });
-        attachment([chips]);
+        welcome.appendChild(chips);
+        messagesEl.appendChild(welcome);
     }
 
     function showTyping() {
@@ -648,8 +673,7 @@ function initAiStaff() {
         const message = (text || '').trim();
         if (!message || busy || !ready) return;
 
-        if (mobileQuery.matches) openPanel();
-        else panel.classList.add('is-open');
+        openPanel();
 
         stopSpeaking();
         document.querySelector('.staff-nudge')?.remove();

@@ -36,7 +36,7 @@
     <meta name="description" content="{{ \Illuminate\Support\Str::limit($description, 155) }}">
     <meta property="og:title" content="{{ $company->name }} · {{ $tagline }}">
     <meta property="og:description" content="{{ \Illuminate\Support\Str::limit($description, 155) }}">
-    <meta name="theme-color" content="#020617">
+    <meta name="theme-color" content="#080e1c">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     @foreach (\App\Models\Company::SUPPORTED_LOCALES as $code)
         <link rel="alternate" hreflang="{{ $code }}" href="{{ url('/?lang='.$code) }}">
@@ -44,13 +44,13 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="site antialiased">
+<body class="site ai-studio antialiased">
     <a href="#ai-staff" class="skip-link">{{ $copy['talk_to_staff'] }}</a>
 
     <header class="site-header">
         <a href="{{ url('/?lang='.$locale) }}" class="brand">
             <img src="{{ asset('images/logo-fts.webp') }}" alt="" width="32" height="32">
-            <span>Fujiyama</span>
+            <span class="studio-brand">FTS<span>AI STUDIO</span></span>
         </a>
         <nav class="site-nav" aria-label="{{ $company->name }}" data-scrollspy>
             @foreach ($navItems as $id => $label)
@@ -69,42 +69,42 @@
 
     <div class="site-shell">
         <main class="site-main">
-            {{-- Hero --}}
-            <section class="hero" aria-labelledby="hero-title">
+            <section class="hero studio-hero" aria-labelledby="hero-title">
                 <div class="hero-orb hero-orb-1"></div>
                 <div class="hero-orb hero-orb-2"></div>
-                <div class="hero-grid">
-                    <div class="hero-copy">
+                <div class="studio-workspace">
+                    <div class="studio-companion">
+                      <div class="hero-copy">
                         <p class="hero-badge"><span class="live-dot"></span>{{ $copy['hero_eyebrow'] }}</p>
                         <h1 id="hero-title">{{ $copy['hero_title'] }}<br><span class="gradient-text">{{ $copy['hero_title_accent'] }}</span></h1>
                         <p class="hero-intro">{{ __($copy['hero_intro'], ['name' => $staffName]) }}</p>
 
-                        <p class="hero-try">{{ $copy['hero_try'] }}</p>
-                        <div class="chip-row">
-                            @foreach ($quickQuestions as $question)
-                                <button type="button" class="chip" data-quick-message="{{ $question['message'] }}">{{ $question['label'] }}</button>
-                            @endforeach
+                      </div>
+                      <div class="hero-figure">
+                        <div class="companion-orbit" aria-hidden="true"></div>
+                        <span class="companion-label">FTS / AI COMPANION</span>
+                        <x-staff-character :size="380" class="companion-portrait" />
+                        <div class="companion-card">
+                            <span class="companion-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                            <div><strong>{{ $staffName }}</strong><span>{{ $copy['studio_companion'] }}</span></div>
+                            <span class="online-dot" aria-hidden="true"></span>
                         </div>
-
-                        <div class="hero-actions">
-                            <button type="button" class="btn btn-primary btn-lg" data-quick-message="{{ $copy['q_consult_msg'] }}">{{ $copy['cta_button'] }} <span aria-hidden="true">→</span></button>
-                            <a href="#projects" class="btn btn-outline btn-lg">{{ $copy['q_projects'] }}</a>
-                        </div>
+                      </div>
                     </div>
-                    <div class="hero-figure">
-                        <x-staff-character :size="250" />
-                        <p class="hero-speech" data-hero-speech>{{ __($copy['hero_greeting'], ['name' => $staffName]) }}</p>
-                        <p class="hero-figure-caption"><strong>{{ $staffName }}</strong> · {{ $copy['staff_role'] }} · <span class="online">{{ $copy['staff_online'] }}</span></p>
-                    </div>
+                    @include('site.staff-panel')
                 </div>
-
+                <div class="studio-explore">
+                    <span>{{ $copy['hero_markets'] }}</span>
+                    <a href="#services">{{ $copy['studio_explore'] }} <span aria-hidden="true">↓</span></a>
+                    <span class="studio-language-note">ID / EN / JA</span>
+                </div>
+            </section>
                 <dl class="stats-band">
                     @foreach ($stats as [$value, $label])
                         <div><dd>{{ $value }}</dd><dt>{{ $label }}</dt></div>
                     @endforeach
                     <div class="stats-flags"><dd><span aria-hidden="true">🇯🇵 🇮🇩</span> ID · EN · JA</dd><dt>{{ $copy['hero_markets'] }}</dt></div>
                 </dl>
-            </section>
 
             {{-- Services --}}
             <section id="services" class="section" aria-labelledby="services-title">
@@ -422,7 +422,6 @@
             </footer>
         </main>
 
-        @include('site.staff-panel')
     </div>
 
     <button type="button" class="staff-launcher" data-open-staff aria-controls="ai-staff">
