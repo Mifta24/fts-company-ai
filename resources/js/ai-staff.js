@@ -685,20 +685,8 @@ function initAiStaff() {
     function renderWelcome() {
         panel.classList.remove('has-conversation');
         const welcome = el('div', 'chat-welcome');
-        welcome.appendChild(el('span', 'welcome-mark', '✦'));
-        welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI COMPANY'));
         welcome.appendChild(el('h2', null, copy.studio_welcome));
         welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
-        welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
-        const chips = el('div', 'chat-chips welcome-chips');
-        config.quickQuestions.forEach((question) => {
-            const chip = el('button', 'chip chip-small', question.label);
-            chip.type = 'button';
-            chip.dataset.quickMessage = question.message;
-            chip.addEventListener('click', () => sendMessage(question.message));
-            chips.appendChild(chip);
-        });
-        welcome.appendChild(chips);
         messagesEl.appendChild(welcome);
     }
 

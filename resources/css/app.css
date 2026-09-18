@@ -749,3 +749,22 @@
 @media (max-width: 700px) {
     .ai-studio .hero-copy-compact { width: 100%; padding: 6px 0 20px; }
 }
+
+/* Aya is the interface, not a decoration next to it: a large, live-reacting
+   avatar anchors the panel, and the panel itself has no card chrome — it
+   should read as the page, not a widget sitting on top of it. */
+.ai-studio .staff-panel { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.ai-studio .staff-panel.is-open { background: linear-gradient(150deg, #111d31, #0d1525 60%); }
+.ai-studio .staff-head-centered { position: relative; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 8px 20px 20px; background: transparent; border-bottom: 0; }
+.staff-head-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 6px; }
+.ai-studio .staff-head-character { width: 132px !important; height: 132px !important; margin: 0 0 14px; filter: drop-shadow(0 18px 34px hsl(203 89% 53% / .3)); }
+.ai-studio .staff-head-centered .staff-name { font-size: 18px; justify-content: center; }
+.ai-studio .staff-head-centered .staff-role { margin-top: 4px; font-size: 11px; }
+
+.studio-explore-centered { justify-content: center; gap: 18px; }
+.studio-explore-divider { color: #4a5a75; }
+
+@media (max-width: 700px) {
+    .ai-studio .staff-head-character { width: 92px !important; height: 92px !important; margin-bottom: 8px; }
+    .ai-studio .staff-head-centered { padding: 6px 16px 16px; }
+}

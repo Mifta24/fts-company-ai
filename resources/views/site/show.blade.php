@@ -2,14 +2,6 @@
     $staffName = $company->ai_staff_name;
     $tagline = $company->translated('tagline', $locale);
     $description = $company->translated('description', $locale);
-    $quickQuestions = [
-        ['label' => $copy['q_about'], 'message' => $copy['q_about_msg']],
-        ['label' => $copy['q_services'], 'message' => $copy['q_services_msg']],
-        ['label' => $copy['q_ai_website'], 'message' => $copy['q_ai_website_msg']],
-        ['label' => $copy['q_projects'], 'message' => $copy['q_projects_msg']],
-        ['label' => $copy['q_price'], 'message' => $copy['q_price_msg']],
-        ['label' => $copy['q_consult'], 'message' => $copy['q_consult_msg']],
-    ];
     $localeNames = ['id' => 'Bahasa Indonesia', 'en' => 'English', 'ja' => '日本語'];
     $industryLabel = fn ($industry) => $copy['industry_'.$industry] ?? ucfirst($industry);
 @endphp
@@ -62,10 +54,10 @@
                     </div>
                     @include('site.staff-panel')
                 </div>
-                <div class="studio-explore">
-                    <span>{{ $copy['hero_markets'] }}</span>
-                    <button type="button" class="text-link" data-open-results>{{ $copy['results_button'] }} <span aria-hidden="true">↓</span></button>
-                    <span class="studio-language-note">ID / EN / JA</span>
+                <div class="studio-explore studio-explore-centered">
+                    <button type="button" class="text-link" data-open-results>{{ $copy['results_button'] }}</button>
+                    <span class="studio-explore-divider" aria-hidden="true">·</span>
+                    <button type="button" class="text-link" data-quick-message="{{ $copy['talk_to_human_msg'] }}">{{ $copy['talk_to_human'] }}</button>
                 </div>
             </section>
 
