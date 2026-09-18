@@ -536,7 +536,7 @@ function initAiStaff() {
     function renderWelcome() {
         const welcome = el('div', 'chat-welcome');
         welcome.appendChild(el('span', 'welcome-mark', '✦'));
-        welcome.appendChild(el('span', 'welcome-eyebrow', 'LET’S CREATE SOMETHING GREAT'));
+        welcome.appendChild(el('span', 'welcome-eyebrow', 'FTS AI STUDIO'));
         welcome.appendChild(el('h2', null, copy.studio_welcome));
         welcome.appendChild(el('p', 'welcome-intro', copy.chat_intro));
         welcome.appendChild(el('p', 'welcome-prompt', copy.hero_try));
