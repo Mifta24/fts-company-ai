@@ -50,7 +50,11 @@ class AiStaffChatController extends Controller
         try {
             $assistantMessage = $this->aiStaff->reply($company, $conversation, $data['message']);
         } catch (\Throwable $e) {
-            Log::error('AI Staff reply failed', ['company_id' => $company->id, 'error' => $e->getMessage()]);
+            Log::error('AI Staff reply failed', [
+                'company_id' => $company->id,
+                'exception' => $e::class,
+                'error' => $e->getMessage(),
+            ]);
 
             return response()->json([
                 'error' => 'ai_staff_unavailable',

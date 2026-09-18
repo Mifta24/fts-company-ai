@@ -26,7 +26,9 @@ class AiStaffService
 
     private const MAX_TOKENS = 4096;
 
-    private const REQUEST_TIMEOUT_SECONDS = 120;
+    private const REQUEST_TIMEOUT_SECONDS = 180;
+
+    private const CONNECT_TIMEOUT_SECONDS = 15;
 
     private const HISTORY_LIMIT = 30;
 
@@ -168,6 +170,7 @@ class AiStaffService
         }
 
         $response = Http::withToken((string) config('services.local_llm.api_key'))
+            ->connectTimeout(self::CONNECT_TIMEOUT_SECONDS)
             ->timeout(self::REQUEST_TIMEOUT_SECONDS)
             ->post(rtrim($baseUrl, '/').'/v1/chat/completions', [
                 'model' => config('services.local_llm.model'),
